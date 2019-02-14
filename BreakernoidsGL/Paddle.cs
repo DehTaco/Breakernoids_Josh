@@ -8,34 +8,37 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-public class Paddle : GameObject
+namespace BreakernoidsGL
 {
-    public float speed = 500;
-
-
-    public Paddle(Game myGame) :
-        base(myGame)
+    public class Paddle : GameObject
     {
-        textureName = "paddle";
-    }
+        public float speed = 500;
 
-    public override void Update(float deltaTime)
-    {
 
-        KeyboardState keyState = Keyboard.GetState();
-        if (keyState.IsKeyDown(Keys.Left))
+        public Paddle(Game myGame) :
+            base(myGame)
         {
-            position.X -= speed * deltaTime;
-        }
-        else if (keyState.IsKeyDown(Keys.Right))
-        {
-            position.X += speed * deltaTime;
+            textureName = "paddle";
         }
 
-        position.X = MathHelper.Clamp(position.X, 32 + texture.Width / 2, 992 - texture.Width / 2);
+        public override void Update(float deltaTime)
+        {
+
+            KeyboardState keyState = Keyboard.GetState();
+            if (keyState.IsKeyDown(Keys.Left))
+            {
+                position.X -= speed * deltaTime;
+            }
+            else if (keyState.IsKeyDown(Keys.Right))
+            {
+                position.X += speed * deltaTime;
+            }
+
+            position.X = MathHelper.Clamp(position.X, 32 + texture.Width / 2, 992 - texture.Width / 2);
 
 
-        base.Update(deltaTime);
+            base.Update(deltaTime);
+        }
+
     }
-
 }

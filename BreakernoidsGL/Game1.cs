@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Audio;
 
 namespace BreakernoidsGL
 {
@@ -22,6 +23,20 @@ namespace BreakernoidsGL
         Ball ball;
         List<Block> blocks = new List<Block>();
         int ballWithPaddle = 0; // For colliding with paddle
+
+        SoundEffect ballBounceSfx, ballHitSfx, deathSfx;
+
+
+        int[,] blockLayout = new int[,]{
+        {5,5,5,5,5,5,5,5,5,5,5,5,5,5,5},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+        {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
+        {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3},
+        {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4},
+        };
+
+
 
         public Game1()
         {
@@ -67,13 +82,21 @@ namespace BreakernoidsGL
             ball.position.Y -= ball.Height + paddle.Height;
 
 
-            for (int i=0; i<15; i++)
+            for (int i = 0; i < blockLayout.GetLength(1); i++)
             {
-                Block tempBlock = new Block(this);
-                tempBlock.LoadContent();
-                tempBlock.position = new Vector2(64 + i * 64, 200);
-                blocks.Add(tempBlock);
+                for (int j = 0; j < blockLayout.GetLength(0); j++)
+                { 
+                    Block tempBlock = new Block((BlockColor)blockLayout[0, 0], this);
+                    tempBlock.LoadContent();
+                    tempBlock.position = new Vector2(64 + i * 64, 100 + j * 32);
+                    blocks.Add(tempBlock);
+                }
             }
+
+
+            ballBounceSfx = Content.Load<SoundEffect>("ball_bounce");
+            ballHitSfx = Content.Load<SoundEffect>("ball_hit");
+            deathSfx = Content.Load<SoundEffect>("death");
 
 
         }
@@ -158,15 +181,17 @@ namespace BreakernoidsGL
                 if(pcnt < 0.33f) // if percent is less than 33% (left half) make the vector2 normal those values
                 {
                     normal = new Vector2(-0.196f, -0.981f);
+                    
                 }
                 else if(pcnt > 0.66f) // If percent is greater than 66% (right half) make vector2 normal those values
                 {
                     normal = new Vector2(0.196f, 0.981f);
+                    
                 }
 
 
                 ball.direction = Vector2.Reflect(ball.direction, normal); // Changes direction of ball
-
+                ballHitSfx.Play(); // Plays the hit sound effect
                 ballWithPaddle = 20; // Makes ball with paddle 20 so the ball isn't constantly changing direction
 
             }
@@ -202,7 +227,13 @@ namespace BreakernoidsGL
                     ball.direction.X = -1.0f * ball.direction.X; // changes x value of ball.direction if hitting anywhere else on the block
                 }
 
-                blocks.Remove(collidedBlock); // removes the hit block from the array
+                bool notGrey = collidedBlock.OnHit();
+                if (notGrey)
+                {
+                    blocks.Remove(collidedBlock); // removes the hit block from the array
+                }
+                
+                ballHitSfx.Play(); // Plays ball hit sound
 
             }
 
@@ -216,24 +247,28 @@ namespace BreakernoidsGL
             if (Math.Abs(ball.position.X - 32) < radius)
             {
                 ball.direction.X = -1.0f * ball.direction.X;
+                ballBounceSfx.Play();
             }
 
             else if (Math.Abs(ball.position.X - 992) < radius)
             {
                 ball.direction.X = -1.0f * ball.direction.X;
+                ballBounceSfx.Play();
             }
 
             else if (Math.Abs(ball.position.Y - 32) < radius)
             {
                 ball.direction.Y = -1.0f * ball.direction.Y;
+                ballBounceSfx.Play();
             }
 
             else if (ball.position.Y > (768 + radius))
             {
                 LoseLife();
+                deathSfx.Play();
             }
 
-
+             
             
 
         }

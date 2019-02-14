@@ -8,55 +8,58 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-public class GameObject 
+namespace BreakernoidsGL
 {
-    protected string textureName = "";
-    protected Texture2D texture;
-    protected Game game;
-    public Vector2 position = Vector2.Zero;
-
-
-    public GameObject(Game myGame)
+    public class GameObject
     {
-        game = myGame;
-    }
+        protected string textureName = "";
+        protected Texture2D texture;
+        protected Game game;
+        public Vector2 position = Vector2.Zero;
 
 
-    public virtual void LoadContent()
-    {
-        if (textureName != "")
+        public GameObject(Game myGame)
         {
-            texture = game.Content.Load<Texture2D>(textureName);
+            game = myGame;
         }
-    }
-
-    public virtual void Update(float deltaTime)
-    {
 
 
-    }
-
-    public virtual void Draw(SpriteBatch batch)
-    {
-        if(texture != null)
+        public virtual void LoadContent()
         {
-            Vector2 drawPosition = position;
-            drawPosition.X -= texture.Width / 2;
-            drawPosition.Y -= texture.Height / 2;
-            batch.Draw(texture, drawPosition, Color.White);
+            if (textureName != "")
+            {
+                texture = game.Content.Load<Texture2D>(textureName);
+            }
+        }
+
+        public virtual void Update(float deltaTime)
+        {
+
 
         }
+
+        public virtual void Draw(SpriteBatch batch)
+        {
+            if (texture != null)
+            {
+                Vector2 drawPosition = position;
+                drawPosition.X -= texture.Width / 2;
+                drawPosition.Y -= texture.Height / 2;
+                batch.Draw(texture, drawPosition, Color.White);
+
+            }
+        }
+
+        public float Width
+        {
+            get { return texture.Width; }
+        }
+
+        public float Height
+        {
+            get { return texture.Height; }
+        }
+
+
     }
-
-    public float Width
-    {
-        get { return texture.Width; }
-    }
-
-    public float Height
-    {
-        get { return texture.Height; }
-    }
-
-
 }

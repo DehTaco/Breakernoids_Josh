@@ -8,23 +8,32 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-public class Ball : GameObject
+namespace BreakernoidsGL
 {
-    public float speed = 500;
-    public Vector2 direction = new Vector2 (0.707f, -0.707f);
 
 
-    public Ball(Game myGame) :
-        base(myGame)
+
+    public class Ball : GameObject
     {
-        textureName = "ball";
+        public float speed = 500;
+        public Vector2 direction = new Vector2(0.707f, -0.707f);
+
+
+        public Ball(Game myGame) :
+            base(myGame)
+        {
+            textureName = "ball";
+        }
+
+        public override void Update(float deltaTime)
+        {
+            position += direction * speed * deltaTime;
+
+            base.Update(deltaTime);
+        }
+
+
+
+
     }
-
-    public override void Update(float deltaTime)
-    {
-        position += direction * speed * deltaTime;
-
-        base.Update(deltaTime);
-    }
-
 }
