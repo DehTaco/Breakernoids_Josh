@@ -24,9 +24,17 @@ namespace BreakernoidsGL
         List<Block> blocks = new List<Block>();
         int ballWithPaddle = 0; // For colliding with paddle
 
+        //power ups
+        List<PowerUp> powerups = new List<PowerUp>();
+        Random random = new Random();
+        public double prob = 0.2;
+
+
+
         SoundEffect ballBounceSfx, ballHitSfx, deathSfx;
 
-
+        //blocks
+        
         int[,] blockLayout = new int[,]{
         {5,5,5,5,5,5,5,5,5,5,5,5,5,5,5},
         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -34,7 +42,7 @@ namespace BreakernoidsGL
         {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
         {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3},
         {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4},
-        };
+        }; 
 
 
 
@@ -82,11 +90,12 @@ namespace BreakernoidsGL
             ball.position.Y -= ball.Height + paddle.Height;
 
 
+
             for (int i = 0; i < blockLayout.GetLength(1); i++)
             {
                 for (int j = 0; j < blockLayout.GetLength(0); j++)
                 { 
-                    Block tempBlock = new Block((BlockColor)blockLayout[0, 0], this);
+                    Block tempBlock = new Block((BlockColor)blockLayout[j, 0], this);
                     tempBlock.LoadContent();
                     tempBlock.position = new Vector2(64 + i * 64, 100 + j * 32);
                     blocks.Add(tempBlock);
@@ -97,6 +106,8 @@ namespace BreakernoidsGL
             ballBounceSfx = Content.Load<SoundEffect>("ball_bounce");
             ballHitSfx = Content.Load<SoundEffect>("ball_hit");
             deathSfx = Content.Load<SoundEffect>("death");
+
+
 
 
         }
@@ -126,6 +137,15 @@ namespace BreakernoidsGL
             paddle.Update(deltaTime);
             ball.Update(deltaTime);
             CheckCollisions();
+            
+
+
+            foreach(PowerUp p in powerups)
+            {
+                p.Update(deltaTime);
+            }
+
+
 
             base.Update(gameTime);
         }
@@ -147,14 +167,23 @@ namespace BreakernoidsGL
             paddle.Draw(spriteBatch);
             ball.Draw(spriteBatch);
 
+            //loop for drawing blocks
             foreach (Block b in blocks)
             {
                 b.Draw(spriteBatch);
             }
 
+
+            //loop for drawing powerups
+            foreach (PowerUp p in powerups)
+            {
+                p.Draw(spriteBatch);
+            }
+
+
+
             spriteBatch.End();
 
-            
         }
 
         protected void CheckCollisions()
@@ -210,6 +239,10 @@ namespace BreakernoidsGL
                     (ball.position.Y < (b.position.Y + b.Height / 2 + radius))) //Checks to see if you hit any of the blocks
                 {
                     collidedBlock = b; // sets the block hit as collidedBlock
+
+
+
+
                     break; //breaks from for each loop
                 }
 
@@ -231,6 +264,12 @@ namespace BreakernoidsGL
                 if (notGrey)
                 {
                     blocks.Remove(collidedBlock); // removes the hit block from the array
+
+                    if(random.NextDouble() < prob) // if random number is less than probability (20%) then spawn a power up
+                    {
+                        SpawnPowerUp(collidedBlock.position);
+                    }
+
                 }
                 
                 ballHitSfx.Play(); // Plays ball hit sound
@@ -288,5 +327,15 @@ namespace BreakernoidsGL
             // Remove the block once the ball hits it
         }
         
+        protected void SpawnPowerUp(Vector2 position)
+        {
+            int powerType = random.Next(3);
+            PowerUp p = new PowerUp((Power)powerType, this);
+            p.LoadContent();
+            p.position = position;
+            powerups.Add(p);
+        }
+
+
     }
 }
