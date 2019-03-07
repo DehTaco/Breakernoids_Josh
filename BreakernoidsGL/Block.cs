@@ -56,6 +56,8 @@ namespace BreakernoidsGL
 
         }
 
+
+
         public bool OnHit()
         {
             if (color != BlockColor.GreyHi)

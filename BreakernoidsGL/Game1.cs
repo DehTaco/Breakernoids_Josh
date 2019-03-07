@@ -28,10 +28,12 @@ namespace BreakernoidsGL
         List<PowerUp> powerups = new List<PowerUp>();
         Random random = new Random();
         public double prob = 0.2;
+        public bool ballCaught = false;
 
+        List<Ball> balls = new List<Ball>();
 
+        SoundEffect ballBounceSfx, ballHitSfx, deathSfx, powerupSFX;
 
-        SoundEffect ballBounceSfx, ballHitSfx, deathSfx;
 
         //blocks
         
@@ -106,6 +108,7 @@ namespace BreakernoidsGL
             ballBounceSfx = Content.Load<SoundEffect>("ball_bounce");
             ballHitSfx = Content.Load<SoundEffect>("ball_hit");
             deathSfx = Content.Load<SoundEffect>("death");
+            powerupSFX = Content.Load<SoundEffect>("powerup");
 
 
 
@@ -134,10 +137,32 @@ namespace BreakernoidsGL
             // TODO: Add your update logic here
 
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+
+            float pX1 = paddle.position.X;
             paddle.Update(deltaTime);
-            ball.Update(deltaTime);
-            CheckCollisions();
+            float ballStick = paddle.position.X - pX1; // For when ballCaugh figure out the x position of paddle to move ball with it
+
+
+            foreach (Ball b in balls)
+            {
+                if (ballCaught)
+                {
+                    ball.position.X += ballStick;
+                }
+                b.Update(deltaTime);
+                CheckCollisions(b);
+            }
+
+
             
+            ball.Update(deltaTime);
+
+
+
+            
+            CheckForPowerUps();
+            RemovePowerUp();
 
 
             foreach(PowerUp p in powerups)
@@ -145,6 +170,11 @@ namespace BreakernoidsGL
                 p.Update(deltaTime);
             }
 
+
+            if (!balls.Any()) // https://stackoverflow.com/questions/18867180/check-if-list-is-empty-in-c-sharp
+            {
+                SpawnBall();
+            }
 
 
             base.Update(gameTime);
@@ -165,7 +195,7 @@ namespace BreakernoidsGL
             spriteBatch.Begin();
             spriteBatch.Draw(bgTexture, new Vector2(0, 0), Color.White);
             paddle.Draw(spriteBatch);
-            ball.Draw(spriteBatch);
+            
 
             //loop for drawing blocks
             foreach (Block b in blocks)
@@ -180,14 +210,25 @@ namespace BreakernoidsGL
                 p.Draw(spriteBatch);
             }
 
-
+            foreach (Ball b in balls)
+            {
+                b.Draw(spriteBatch);
+            }
 
             spriteBatch.End();
 
         }
 
-        protected void CheckCollisions()
+        protected void CheckCollisions(Ball ball)
         {
+
+            //Put checking if ball is caught
+            if (ball.isCaught)
+            {
+                return; // If ball is caught return
+            }
+          
+
             float radius = ball.Width / 2;
             //Paddle collisions
             //Check to see if the ball hits the paddle
@@ -198,7 +239,7 @@ namespace BreakernoidsGL
                 (ball.position.Y > (paddle.position.Y - radius - paddle.Height / 2)))
             {
 
-                Vector2 normal = -1.0f * Vector2.UnitY; // sets the normal to "up"
+                Vector2 normal = -1.0f * Vector2.UnitY; // sets the vector2 normal to "up"
 
                 float dist = paddle.Width + radius * 2; // Distance from left to right of paddle
 
@@ -222,6 +263,22 @@ namespace BreakernoidsGL
                 ball.direction = Vector2.Reflect(ball.direction, normal); // Changes direction of ball
                 ballHitSfx.Play(); // Plays the hit sound effect
                 ballWithPaddle = 20; // Makes ball with paddle 20 so the ball isn't constantly changing direction
+
+
+                if (ballCaught)
+                {
+                    ball.isCaught = true; // Set ball caught to true in Ball class
+                    if(pcnt < 0.5f) // If the percent is less than 50 (left side of paddle) send ball to left
+                    {
+                        ball.direction = new Vector2(-0.707f, -0.707f);
+
+                    }
+                    else // If ball is not on left side, send ball to the right
+                    {
+                        ball.direction = new Vector2(0.707f, -0.707f);
+                    }
+                }
+
 
             }
             else if(ballWithPaddle > 0)
@@ -303,8 +360,9 @@ namespace BreakernoidsGL
 
             else if (ball.position.Y > (768 + radius))
             {
-                LoseLife();
-                deathSfx.Play();
+               
+                RemoveBalls();
+                
             }
 
              
@@ -319,14 +377,31 @@ namespace BreakernoidsGL
             ball.position = paddle.position;
             ball.position.Y -= ball.Height + paddle.Height;
             ball.direction = new Vector2(0.707f, -0.707f);
+            paddle.ChangeTexture("paddle");
+            ballCaught = false;
+            deathSfx.Play();
+            SpawnBall();
+
         }
 
 
-        protected void Remove()
+
+
+        protected void RemovePowerUp()
         {
-            // Remove the block once the ball hits it
+            for(int i=powerups.Count - 1; i>=0; i--)
+            {
+                if (powerups[i].shouldRemove)
+                {
+                    powerups.RemoveAt(i);
+                    Console.WriteLine("Power up removed");
+                }
+            }
         }
-        
+
+
+
+
         protected void SpawnPowerUp(Vector2 position)
         {
             int powerType = random.Next(3);
@@ -334,6 +409,67 @@ namespace BreakernoidsGL
             p.LoadContent();
             p.position = position;
             powerups.Add(p);
+        }
+
+
+
+
+
+        protected void CheckForPowerUps()
+        {
+            Rectangle paddleR = paddle.BoundingRect;
+            foreach (PowerUp p in powerups)
+            {
+                Rectangle powerUpR = p.BoundingRect;
+                if (paddleR.Intersects(powerUpR)) // If paddle intersects with rec of powerup
+                {
+                    p.shouldRemove = true; // Removes power up when intersecting
+                    powerupSFX.Play();
+                    switch (p.power)
+                    {
+                        case (Power.BallCatch):
+                            ballCaught = true;
+                            break;
+                        case (Power.PaddleSize):
+                            paddle.ChangeTexture("paddle_long");
+                            break;
+                        case (Power.MultiBall):
+                            SpawnBall();
+                            break;
+                    }
+                }
+            }
+
+        }
+
+
+        
+        protected void SpawnBall()
+        {
+            Console.WriteLine("Ball Spawned");
+            Ball ball = new Ball(this);
+            ball.LoadContent();
+            ball.position = paddle.position;
+            ball.position.Y -= ball.Height + paddle.Height;
+            balls.Add(ball);
+        }
+
+
+        protected void RemoveBalls()
+        {
+            for (int i = balls.Count - 1; i>= 0; i--)
+            {
+                if (balls[i].shouldRemove)
+                {
+                    balls.RemoveAt(i);
+                }
+            }
+
+            if (balls.Count == 0)
+            {
+                LoseLife();
+            }
+
         }
 
 

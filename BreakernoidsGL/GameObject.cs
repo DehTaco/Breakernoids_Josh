@@ -24,6 +24,16 @@ namespace BreakernoidsGL
         }
 
 
+        public Rectangle BoundingRect
+        {
+            get
+            {
+                return new Rectangle((int)(position.X - Width/2), (int)(position.Y + Height/2), (int)Width, (int)Height);
+
+            }
+
+        }
+
         public virtual void LoadContent()
         {
             if (textureName != "")

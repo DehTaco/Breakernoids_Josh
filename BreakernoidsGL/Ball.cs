@@ -17,6 +17,9 @@ namespace BreakernoidsGL
     {
         public float speed = 500;
         public Vector2 direction = new Vector2(0.707f, -0.707f);
+        public bool isCaught;
+        public int onPaddle = 0;
+        public bool shouldRemove = false;
 
 
         public Ball(Game myGame) :
@@ -27,7 +30,32 @@ namespace BreakernoidsGL
 
         public override void Update(float deltaTime)
         {
-            position += direction * speed * deltaTime;
+            
+
+            KeyboardState keyState = Keyboard.GetState();
+            if (!isCaught) 
+            {
+                position += direction * speed * deltaTime;
+                if (onPaddle > 0)
+                {
+                    onPaddle--;
+                }
+            }
+            else 
+            {
+                if (keyState.IsKeyDown(Keys.Space))
+                {
+                    isCaught = false;
+                }
+                
+
+            }
+
+            if(position.Y > 768)
+            {
+                shouldRemove = true;
+            }
+
 
             base.Update(deltaTime);
         }

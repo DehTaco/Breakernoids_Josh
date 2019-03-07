@@ -21,6 +21,8 @@ namespace BreakernoidsGL
             textureName = "paddle";
         }
 
+
+
         public override void Update(float deltaTime)
         {
 
@@ -39,6 +41,20 @@ namespace BreakernoidsGL
 
             base.Update(deltaTime);
         }
+
+
+
+        public void ChangeTexture(string name)
+        {
+            if(name != textureName)
+            {
+                textureName = name;
+                texture = game.Content.Load<Texture2D>(textureName);
+            }
+
+        }
+
+
 
     }
 }
