@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace BreakernoidsGL
 {
@@ -34,20 +36,12 @@ namespace BreakernoidsGL
 
         SoundEffect ballBounceSfx, ballHitSfx, deathSfx, powerupSFX;
 
+        Level level;
+
 
         //blocks
         
-        int[,] blockLayout = new int[,]{
-        {5,5,5,5,5,5,5,5,5,5,5,5,5,5,5},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-        {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
-        {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3},
-        {4,4,4,4,4,4,4,4,4,4,4,4,4,4,4},
-        }; 
-
-
-
+      
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -93,16 +87,9 @@ namespace BreakernoidsGL
 
 
 
-            for (int i = 0; i < blockLayout.GetLength(1); i++)
-            {
-                for (int j = 0; j < blockLayout.GetLength(0); j++)
-                { 
-                    Block tempBlock = new Block((BlockColor)blockLayout[j, 0], this);
-                    tempBlock.LoadContent();
-                    tempBlock.position = new Vector2(64 + i * 64, 100 + j * 32);
-                    blocks.Add(tempBlock);
-                }
-            }
+            LoadLevel("Level5.xml");
+
+
 
 
             ballBounceSfx = Content.Load<SoundEffect>("ball_bounce");
@@ -333,9 +320,7 @@ namespace BreakernoidsGL
 
             }
 
-
-
-
+            
 
             // Wall collisions
             
@@ -364,10 +349,8 @@ namespace BreakernoidsGL
                 RemoveBalls();
                 
             }
-
-             
             
-
+         
         }
 
         protected void LoseLife()
@@ -384,9 +367,7 @@ namespace BreakernoidsGL
 
         }
 
-
-
-
+        
         protected void RemovePowerUp()
         {
             for(int i=powerups.Count - 1; i>=0; i--)
@@ -399,8 +380,7 @@ namespace BreakernoidsGL
             }
         }
 
-
-
+        
 
         protected void SpawnPowerUp(Vector2 position)
         {
@@ -411,9 +391,7 @@ namespace BreakernoidsGL
             powerups.Add(p);
         }
 
-
-
-
+        
 
         protected void CheckForPowerUps()
         {
@@ -450,6 +428,7 @@ namespace BreakernoidsGL
             Ball ball = new Ball(this);
             ball.LoadContent();
             ball.position = paddle.position;
+            ball.speed = level.ballSpeed + 100;
             ball.position.Y -= ball.Height + paddle.Height;
             balls.Add(ball);
         }
@@ -469,6 +448,37 @@ namespace BreakernoidsGL
             {
                 LoseLife();
             }
+
+        }
+
+
+
+        protected void LoadLevel(string levelName)
+        {
+
+            using (FileStream fs = File.OpenRead("Levels/" + levelName))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Level));
+                level = (Level)serializer.Deserialize(fs);
+
+            }
+
+
+            for (int i = 0; i < level.layout.Length; i++)
+            {
+                for (int j = 0; j < level.layout[i].Length; j++)
+                { 
+                    if(level.layout[i][j] != 9)
+                    {
+                        Block tempBlock = new Block((BlockColor)level.layout[j][i], this);
+                        tempBlock.LoadContent();
+                        tempBlock.position = new Vector2(64 + i * 64, 100 + j * 32);
+                        blocks.Add(tempBlock);
+                    }
+                    
+                }
+            } 
+
 
         }
 
